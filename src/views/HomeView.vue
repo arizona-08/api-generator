@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
 </script>
 
 <template>
   <main>
-    <h1 class="text-3xl">Hello world</h1>
+    <h1>Page d'accueil / générateur</h1>
+    <p>Importez un fichier JSON pour générer automatiquement la documentation d'une API.</p>
   </main>
 </template>
