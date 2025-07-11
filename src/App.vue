@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterView } from 'vue-router'
+import Header from './components/layout/Header.vue'
 </script>
 
 <template>
-  <header>
-    <h1>API Generator</h1>
-    <nav>
-      <router-link to="/">Générateur</router-link> |
-      <router-link to="/doc">Documentation</router-link> |
-      <router-link to="/test">Testeur d'API</router-link>
-    </nav>
-  </header>
-  
-  <RouterView />
+  <div class="min-h-screen bg-gray-900">
+    <Header />
+
+    <main class="flex-1">
+      <RouterView />
+    </main>
+  </div>
 </template>
