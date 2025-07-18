@@ -139,13 +139,13 @@ onMounted(() => {
         </div>
 
         <div class="px-6 py-4 bg-gray-800/50 border-t border-gray-700 flex justify-end items-center">
-          <button
+          <!-- <button
             type="button"
             @click="debugStore"
             class="inline-flex justify-center items-center px-4 py-2 border border-gray-600 text-sm font-medium rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600"
           >
             Debug Store
-          </button>
+          </button> -->
           <button
             type="button"
             @click="generateApi"
