@@ -1,0 +1,30 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Alice",
+      "email": "alice@example.com",
+      "role": "admin"
+    },
+    {
+      "id": 2,
+      "name": "Bob",
+      "email": "bob@example.com",
+      "role": "editor"
+    }
+  ],
+  "posts": [
+    {
+      "id": 101,
+      "title": "Bienvenue",
+      "content": "Ceci est un post de bienvenue.",
+      "authorId": 1
+    },
+    {
+      "id": 102,
+      "title": "Deuxième post",
+      "content": "Un autre post ici.",
+      "authorId": 2
+    }
+  ]
+}

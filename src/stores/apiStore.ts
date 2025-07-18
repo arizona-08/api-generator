@@ -23,6 +23,8 @@ export const useApiStore = defineStore('api', () => {
   const generatedRoutes = ref<Route[]>([])
   const documentation = ref<Documentation | null>(null)
 
+  
+
   const setJsonData = (data: any) => {
     jsonData.value = data
   }
@@ -47,6 +49,17 @@ export const useApiStore = defineStore('api', () => {
     }
   }
 
+  const updateJsonData = (newData: any) => {
+    if (documentation.value) {
+      const updatedDocs = {
+        ...documentation.value,
+        jsonData: newData
+      };
+      // On utilise saveDocumentation pour mettre à jour à la fois le state et le localStorage
+      saveDocumentation(updatedDocs);
+    }
+  };
+
   const clearDocumentation = () => {
     documentation.value = null
     localStorage.removeItem('api-documentation')
@@ -66,6 +79,7 @@ export const useApiStore = defineStore('api', () => {
     setGeneratedRoutes,
     saveDocumentation,
     loadDocumentation,
+    updateJsonData,
     clearDocumentation,
     hasDocumentation
   }
