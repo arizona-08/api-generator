@@ -28,26 +28,6 @@ if (props.route.params) {
   })
 }
 
-// if (props.route.method === 'POST' || props.route.method === 'PUT') {
-//     requestBody.value = JSON.stringify({
-//         "name": "Nouveau Nom",
-//         "email": "nouveau@example.com",
-//         "role": "nouveau_role"
-//     }, null, 2);
-// }
-
-// Construit l'URL complète en remplaçant les placeholders par les valeurs
-// Cette logique reste la même
-const finalUrl = computed(() => {
-  let url = props.route.url
-  // L'URL de la route contient déjà le préfixe, on a juste à remplacer les params
-  for (const key in paramValues.value) {
-    // Remplace :id par la valeur, ou le laisse si la valeur est vide
-    url = url.replace(`{${key}}`, encodeURIComponent(paramValues.value[key] || `{${key}}`))
-  }
-  // console.log(url);
-  return url
-})
 
 // La logique des couleurs reste la même
 const methodColorClass = computed(() => {
@@ -82,10 +62,11 @@ const executeRequest = async () => {
   await new Promise(resolve => setTimeout(resolve, 400));
 
   try {
-
-    console.log(paramValues.value)
-    console.log(props.route.url)
     let parsedBody = null;
+
+    if(paramValues.value.body){
+      requestBody.value = paramValues.value.body
+    }
 
     // Si c'est POST ou PUT, on parse le contenu de la textarea
     if ((props.route.method === 'POST' || props.route.method === 'PUT') && requestBody.value) {

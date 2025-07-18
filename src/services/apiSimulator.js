@@ -2,9 +2,6 @@ import { useApiStore } from '../stores/apiStore';
 
 class ApiSimulator {
   /**
-   * NOUVELLE SIGNATURE : La méthode est plus simple car elle reçoit les informations
-   * de manière explicite, au lieu de devoir les déduire d'une URL.
-   *
    * @param {object} route - Le modèle de la route (ex: { method: 'GET', url: '/api/v1/users/{id}' }).
    * @param {object} params - Les valeurs des paramètres (ex: { id: '1' }).
    * @param {object} body - Le corps de la requête pour POST/PUT.
@@ -13,16 +10,13 @@ class ApiSimulator {
     const apiStore = useApiStore();
     const { documentation } = apiStore;
 
-    // 1. Vérifier si le store est prêt
     if (!documentation?.jsonData) {
       return { status: 503, data: { error: "Simulateur non initialisé." } };
     }
 
-    // 2. Préparer les données
     const dataCopy = JSON.parse(JSON.stringify(documentation.jsonData));
     const prefix = documentation.apiPrefix.endsWith('/') ? documentation.apiPrefix.slice(0, -1) : documentation.apiPrefix;
     
-    // 3. Appeler directement le bon handler (plus besoin de chercher la route)
     switch (route.method.toUpperCase()) {
       case 'GET':    return this.handleGet(route, params, dataCopy, prefix);
       case 'POST':   return this.handlePost(route, params, body, dataCopy, prefix);
@@ -31,10 +25,6 @@ class ApiSimulator {
       default:       return { status: 405, data: { error: 'Méthode non supportée' } };
     }
   }
-
-  // Les fonctions findMatchingRoute et extractPathParams ont été supprimées car inutiles.
-
-  // Les fonctions "handle" et "getDataFromPath" restent identiques à la version précédente.
   
   handleGet(route, params, data, prefix) {
     let resolvedPath = route.url.substring(prefix.length);
