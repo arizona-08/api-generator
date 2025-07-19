@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import RouteParameters from './RouteParameters.vue'
+import RequestExample from './RequestExample.vue'
 import ResponseExample from './ResponseExample.vue'
 import CopyButton from './CopyButton.vue'
 
@@ -9,6 +10,7 @@ interface Route {
   url: string
   description: string
   params?: any[]
+  requestExample?: string
   responseExample?: string
 }
 
@@ -61,6 +63,13 @@ const copyText = computed(() => `${props.route.method} ${props.route.url}`)
       <RouteParameters
         v-if="route.params && route.params.length > 0"
         :params="route.params"
+        class="mb-4"
+      />
+
+      <RequestExample
+        v-if="route.requestExample && (route.method === 'POST' || route.method === 'PUT')"
+        :example="route.requestExample"
+        :route-key="routeKey"
         class="mb-4"
       />
 

@@ -3,3 +3,162 @@
 /* @tailwind base;
 @tailwind components; */
 @tailwind utilities;
+
+/* 🌈 MODE FUN - Fond Arc-en-ciel Animé ! 🎨 */
+.fun {
+  /* Fond arc-en-ciel avec plus de couleurs */
+  background: linear-gradient(-45deg, 
+    #ff0080, #ff8c00, #ffd700, #32cd32, 
+    #00bfff, #8a2be2, #ff1493, #00ff7f,
+    #ff6347, #4169e1, #ff69b4, #00ced1);
+  background-size: 600% 600%;
+  animation: rainbowShift 10s ease infinite;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  min-height: 100vh;
+}
+
+/* Animation arc-en-ciel plus fluide */
+@keyframes rainbowShift {
+  0% { background-position: 0% 50%; }
+  25% { background-position: 100% 50%; }
+  50% { background-position: 100% 100%; }
+  75% { background-position: 0% 100%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Header glassmorphism avec arc-en-ciel */
+.fun header {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.25), 
+    rgba(255, 255, 255, 0.1)) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Navigation avec effets arc-en-ciel */
+.fun nav a {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.2), 
+    rgba(255, 255, 255, 0.1)) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 15px !important;
+  color: white !important;
+  font-weight: 600;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.fun nav a:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.4), 
+    rgba(255, 255, 255, 0.2)) !important;
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.fun nav a.router-link-active {
+  background: linear-gradient(135deg, #ff6b6b, #4ecdc4) !important;
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Conteneurs avec glassmorphism */
+.fun .bg-gray-800,
+.fun .bg-gray-900 {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.15), 
+    rgba(255, 255, 255, 0.05)) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Titres avec effet arc-en-ciel */
+.fun h1, .fun h2, .fun h3 {
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7);
+  background-size: 300% 300%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textRainbow 3s ease infinite;
+  font-weight: 800;
+  text-shadow: none;
+}
+
+@keyframes textRainbow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Boutons avec effet arc-en-ciel */
+.fun button:not(.ml-4) {
+  background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1) !important;
+  background-size: 200% 200%;
+  border: none !important;
+  border-radius: 20px !important;
+  color: white !important;
+  font-weight: 700;
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: buttonGlow 2s ease infinite;
+}
+
+@keyframes buttonGlow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.fun button:not(.ml-4):hover {
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 12px 30px rgba(255, 107, 107, 0.6);
+  background-size: 300% 300%;
+}
+
+/* Inputs avec style glassmorphism */
+.fun input, .fun textarea {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 15px !important;
+  color: #333 !important;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.fun input:focus, .fun textarea:focus {
+  border-color: rgba(255, 107, 107, 0.8) !important;
+  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.2) !important;
+  transform: scale(1.02);
+  background: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Animation de flottement pour tous les éléments */
+.fun * {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Effet de pulsation pour le titre principal */
+.fun h1 {
+  animation: textRainbow 3s ease infinite, pulse 4s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.light {
+  background: #f8fafc;
+  color: #333;
+}
+
+.light header {
+  background: white !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}

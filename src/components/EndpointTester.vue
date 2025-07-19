@@ -20,6 +20,7 @@ const requestBody = ref('') // Pour le corps des requêtes POST/PUT
 const response = ref<any>(null)
 const error = ref<any>(null)
 const isLoading = ref(false)
+const isResponseCollapsed = ref(false) // État du repliage de la réponse
 
 // Initialise les valeurs des paramètres à partir des props (simplifié)
 if (props.route.params) {
@@ -154,13 +155,40 @@ const executeRequest = async () => {
         </div>
 
         <div v-if="response" class="border border-gray-700 rounded-md">
-          <div class="p-2 bg-gray-900/20 flex items-center gap-2">
-            <span class="text-xs font-bold px-2 py-0.5 rounded" :class="statusColorClass">
-              Status: {{ response.status }}
-            </span>
-            <span class="text-sm text-gray-300">{{ response.statusText }}</span>
+          <div class="p-2 bg-gray-900/20 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold px-2 py-0.5 rounded" :class="statusColorClass">
+                Status: {{ response.status }}
+              </span>
+              <span class="text-sm text-gray-300">{{ response.statusText }}</span>
+            </div>
+            <!-- Bouton de repliage/dépliage -->
+            <button
+              @click="isResponseCollapsed = !isResponseCollapsed"
+              class="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded transition-colors"
+              :title="isResponseCollapsed ? 'Déplier la réponse' : 'Replier la réponse'"
+            >
+              <!-- Icône flèche -->
+              <svg 
+                class="w-4 h-4 transition-transform duration-200" 
+                :class="{ 'rotate-180': isResponseCollapsed }"
+                fill="currentColor" 
+                viewBox="0 0 20 20"
+              >
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+              {{ isResponseCollapsed ? 'Afficher' : 'Masquer' }}
+            </button>
           </div>
-          <pre class="p-3 bg-gray-900/50 text-sm text-green-300 overflow-x-auto"><code>{{ JSON.stringify(response.data, null, 2) }}</code></pre>
+          <!-- Réponse avec transition et scrollbar -->
+          <div 
+            class="overflow-hidden transition-all duration-300 ease-in-out"
+            :class="isResponseCollapsed ? 'max-h-0' : 'max-h-96'"
+          >
+            <div class="max-h-80 overflow-y-auto">
+              <pre class="p-3 bg-gray-900/50 text-sm text-green-300 overflow-x-auto whitespace-pre-wrap break-words"><code>{{ JSON.stringify(response.data, null, 2) }}</code></pre>
+            </div>
+          </div>
         </div>
       </div>
     </div>
