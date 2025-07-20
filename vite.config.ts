@@ -15,4 +15,14 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  server: {
+    proxy: {
+      '/api/weather': {
+        target: 'https://api.openweathermap.org/data/2.5',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/weather/, '/weather'),
+        secure: true
+      }
+    }
+  }
 })

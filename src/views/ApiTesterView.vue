@@ -3,27 +3,82 @@ import { computed, ref } from 'vue'
 import { useApiStore } from '../stores/apiStore'
 import { generateApiRoutes } from '../services/apiGenerator'
 import EndpointTester from '../components/EndpointTester.vue'
+import { useDoomMode } from '../composables/useDoomMode'
 
 const apiStore = useApiStore()
+const { isDoomActive, toggleDoomMode } = useDoomMode()
 
 const routes = computed(() => apiStore.documentation?.routes || [])
 
-// Exemples de données JSON fonctionnelles
-const exampleData = {
-  users: [
-    { id: 1, name: "Alice Dupont", email: "alice@example.com", age: 28 },
-    { id: 2, name: "Bob Martin", email: "bob@example.com", age: 35 },
-    { id: 3, name: "Claire Leroy", email: "claire@example.com", age: 22 }
-  ],
-  products: [
-    { id: 1, name: "Laptop", price: 999.99, category: "Electronics" },
-    { id: 2, name: "Book", price: 19.99, category: "Education" },
-    { id: 3, name: "Coffee", price: 4.50, category: "Food" }
-  ],
-  posts: [
-    { id: 1, title: "Hello World", content: "First post!", author: "Alice" },
-    { id: 2, title: "Vue.js Tips", content: "Some useful tips", author: "Bob" }
+// Générer automatiquement des exemples basés sur les données JSON importées
+const generateDynamicExamples = () => {
+  const currentData = apiStore.jsonData
+  if (!currentData || typeof currentData !== 'object') {
+    return {}
+  }
+  
+  // Créer des exemples basés sur les clés réelles du JSON importé
+  const examples: Record<string, any> = {}
+  
+  Object.keys(currentData).forEach(key => {
+    const data = currentData[key]
+    if (Array.isArray(data) && data.length > 0) {
+      // Prendre les 3 premiers éléments comme exemples
+      examples[key] = data.slice(0, 3)
+    } else if (typeof data === 'object' && data !== null) {
+      // Si c'est un objet, l'utiliser tel quel
+      examples[key] = data
+    }
+  })
+  
+  return examples
+}
+
+// Exemples dynamiques basés sur les données importées
+const dynamicExamples = computed(() => generateDynamicExamples())
+
+// Fonctions helper pour le style des exemples
+const getExampleColor = (index: number) => {
+  const colors = ['text-green-400', 'text-blue-400', 'text-purple-400', 'text-yellow-400', 'text-red-400', 'text-pink-400']
+  return colors[index % colors.length]
+}
+
+const getExampleButtonColor = (index: number) => {
+  const colors = [
+    'bg-green-600 hover:bg-green-700',
+    'bg-blue-600 hover:bg-blue-700', 
+    'bg-purple-600 hover:bg-purple-700',
+    'bg-yellow-600 hover:bg-yellow-700',
+    'bg-red-600 hover:bg-red-700',
+    'bg-pink-600 hover:bg-pink-700'
   ]
+  return colors[index % colors.length]
+}
+
+const getExampleIcon = (key: string) => {
+  const iconMap: Record<string, string> = {
+    users: '👥',
+    products: '🛍️',
+    posts: '📝',
+    articles: '📰',
+    orders: '📦',
+    customers: '👤',
+    books: '📚',
+    movies: '🎬',
+    music: '🎵',
+    photos: '📸',
+    videos: '🎥',
+    events: '📅',
+    tasks: '✅',
+    projects: '🚀',
+    companies: '🏢',
+    categories: '📂',
+    tags: '🏷️',
+    comments: '💬',
+    reviews: '⭐',
+    ratings: '📊'
+  }
+  return iconMap[key.toLowerCase()] || '📋'
 }
 
 // Fonction pour charger un exemple
@@ -92,8 +147,31 @@ const showExamples = ref(false)
   <main class="py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
-        <h1 class="text-3xl font-bold text-gray-100 mb-2">Testeur d'API Live ⚡</h1>
+        <!-- Titre avec éclair cliquable pour activer le mode DOOM (Easter Egg) -->
+        <h1 
+          class="text-3xl font-bold text-gray-100 mb-2 select-none transition-all duration-300"
+          :class="{
+            'text-red-400 animate-pulse': isDoomActive
+          }"
+        >
+          Testeur d'API Live 
+          <span 
+            @click="toggleDoomMode"
+            class="inline-block transition-all duration-300 cursor-pointer"
+            :class="{
+              'animate-bounce text-red-500': isDoomActive,
+              'hover:animate-pulse hover:text-yellow-400': !isDoomActive
+            }"
+            :title="isDoomActive ? 'Mode DOOM activé ! Clique pour désactiver' : 'Easter Egg: Clique sur l\'\u00e9clair pour activer le mode DOOM...'"
+          >⚡</span>
+        </h1>
+        
         <p class="text-lg text-gray-400">Testez en direct tous les endpoints de l'API générée.</p>
+        
+        <!-- Message DOOM Mode actif -->
+        <p v-if="isDoomActive" class="text-sm text-red-400 mt-2 animate-pulse">
+          💀 RIP AND TEAR THROUGH THE API ENDPOINTS! 💀
+        </p>
       </div>
 
       <!-- Section des exemples de requêtes -->
@@ -124,63 +202,60 @@ const showExamples = ref(false)
           :class="showExamples ? 'max-h-96 overflow-y-auto' : 'max-h-0'"
         >
           <div class="p-4 space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <!-- Exemple Users -->
-              <div class="bg-gray-900/30 p-4 rounded-lg border border-gray-600">
-                <h3 class="font-semibold text-green-400 mb-2">👥 API Utilisateurs</h3>
-                <p class="text-sm text-gray-400 mb-3">Endpoints pour gérer des utilisateurs</p>
+            <!-- Exemples dynamiques basés sur les données importées -->
+            <div v-if="Object.keys(dynamicExamples).length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div 
+                v-for="(data, key, index) in dynamicExamples" 
+                :key="key"
+                class="bg-gray-900/30 p-4 rounded-lg border border-gray-600"
+              >
+                <h3 class="font-semibold mb-2 capitalize" :class="getExampleColor(index)">
+                  {{ getExampleIcon(key) }} API {{ key }}
+                </h3>
+                <p class="text-sm text-gray-400 mb-3">
+                  Endpoints pour gérer {{ key.toLowerCase() }}
+                </p>
                 <ul class="text-xs text-gray-500 mb-4 space-y-1">
-                  <li>• GET /api/v1/users</li>
-                  <li>• GET /api/v1/users/{id}</li>
-                  <li>• POST /api/v1/users</li>
-                  <li>• PUT /api/v1/users/{id}</li>
-                  <li>• DELETE /api/v1/users/{id}</li>
+                  <li>• GET {{ apiStore.apiPrefix }}/{{ key }}</li>
+                  <li>• GET {{ apiStore.apiPrefix }}/{{ key }}/{id}</li>
+                  <li>• POST {{ apiStore.apiPrefix }}/{{ key }}</li>
+                  <li>• PUT {{ apiStore.apiPrefix }}/{{ key }}/{id}</li>
+                  <li>• DELETE {{ apiStore.apiPrefix }}/{{ key }}/{id}</li>
                 </ul>
+                <div class="text-xs text-gray-600 mb-3 p-2 bg-gray-800/50 rounded border-l-2 border-gray-600">
+                  <strong>Exemple de donnée :</strong>
+                  <pre class="mt-1 text-xs">{{ JSON.stringify(Array.isArray(data) ? data[0] : data, null, 2).slice(0, 100) }}{{ JSON.stringify(Array.isArray(data) ? data[0] : data, null, 2).length > 100 ? '...' : '' }}</pre>
+                </div>
                 <button
-                  @click="loadExample(exampleData)"
-                  class="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-3 rounded transition-colors"
+                  @click="loadExample({ [key]: data })"
+                  class="w-full text-white text-sm font-medium py-2 px-3 rounded transition-colors"
+                  :class="getExampleButtonColor(index)"
                 >
                   Charger cet exemple
                 </button>
               </div>
-              
-              <!-- Exemple Products -->
-              <div class="bg-gray-900/30 p-4 rounded-lg border border-gray-600">
-                <h3 class="font-semibold text-blue-400 mb-2">🛍️ API Produits</h3>
-                <p class="text-sm text-gray-400 mb-3">Endpoints pour un e-commerce</p>
-                <ul class="text-xs text-gray-500 mb-4 space-y-1">
-                  <li>• GET /api/v1/products</li>
-                  <li>• GET /api/v1/products/{id}</li>
-                  <li>• POST /api/v1/products</li>
-                  <li>• PUT /api/v1/products/{id}</li>
-                  <li>• DELETE /api/v1/products/{id}</li>
-                </ul>
-                <button
-                  @click="loadExample({ products: exampleData.products })"
-                  class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded transition-colors"
-                >
-                  Charger cet exemple
-                </button>
+            </div>
+            
+            <!-- Message si aucune donnée importée -->
+            <div v-else class="text-center py-8">
+              <div class="text-gray-500 mb-4">
+                <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" clip-rule="evenodd" />
+                </svg>
+                <p class="text-lg font-medium text-gray-400 mb-2">Aucun exemple disponible</p>
+                <p class="text-sm text-gray-500">
+                  Importez d'abord un fichier JSON depuis la page d'accueil pour voir des exemples personnalisés ici.
+                </p>
               </div>
-              
-              <!-- Exemple Posts -->
-              <div class="bg-gray-900/30 p-4 rounded-lg border border-gray-600">
-                <h3 class="font-semibold text-purple-400 mb-2">📝 API Blog</h3>
-                <p class="text-sm text-gray-400 mb-3">Endpoints pour un blog</p>
-                <ul class="text-xs text-gray-500 mb-4 space-y-1">
-                  <li>• GET /api/v1/posts</li>
-                  <li>• GET /api/v1/posts/{id}</li>
-                  <li>• POST /api/v1/posts</li>
-                  <li>• PUT /api/v1/posts/{id}</li>
-                  <li>• DELETE /api/v1/posts/{id}</li>
-                </ul>
-                <button
-                  @click="loadExample({ posts: exampleData.posts })"
-                  class="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-3 rounded transition-colors"
-                >
-                  Charger cet exemple
-                </button>
-              </div>
+              <router-link 
+                to="/" 
+                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                </svg>
+                Retour à l'import JSON
+              </router-link>
             </div>
             
             <!-- Exemple complet -->

@@ -5,11 +5,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApiStore } from '../stores/apiStore'
 import { useFileReader } from '../composables/useFileReader'
+import { useWeather } from '../composables/useWeather'
 import { generateApiRoutes } from '../services/apiGenerator'
 
 const router = useRouter()
 const apiStore = useApiStore()
 const { readJsonFile, validateJson } = useFileReader()
+const { weatherData, isLoading: isWeatherLoading, error: weatherError, fetchWeather } = useWeather()
 
 const jsonInput = ref('')
 const apiPrefix = ref('/api/v1')
@@ -93,6 +95,35 @@ onMounted(() => {
       <div class="text-center mb-10">
         <h1 class="text-3xl font-bold text-gray-100 mb-2">Générateur d'API Instantané</h1>
         <p class="text-lg text-gray-400">Collez votre JSON ou importez un fichier pour créer votre documentation.</p>
+        
+        <!-- Section Météo -->
+        <div class="mt-8">
+          <button
+            @click="fetchWeather('Paris')"
+            :disabled="isWeatherLoading"
+            class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 disabled:from-blue-800 disabled:to-cyan-800 text-white font-medium rounded-lg transition-all transform hover:scale-105 shadow-lg"
+          >
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+            </svg>
+            {{ isWeatherLoading ? 'Chargement...' : 'Tester API Météo' }}
+          </button>
+          
+          <!-- Affichage des erreurs météo -->
+          <div v-if="weatherError" class="mt-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-300 text-sm max-w-md mx-auto">
+             {{ weatherError.message }}
+          </div>
+          
+          <!-- Affichage des données météo -->
+          <div v-if="weatherData" class="mt-4 p-4 bg-gradient-to-r from-blue-900/30 to-cyan-900/30 border border-blue-600 rounded-lg max-w-md mx-auto">
+            <h3 class="text-blue-300 font-semibold mb-2"> Données météo (API externe)</h3>
+            <div class="text-sm text-blue-200">
+              <p class="font-medium">{{ weatherData.location }} - {{ weatherData.temperature }}°C</p>
+              <p class="text-blue-300">{{ weatherData.description }}</p>
+              <p class="text-xs text-blue-400 mt-1">Humidité: {{ weatherData.humidity }}% • Vent: {{ weatherData.windSpeed }} km/h</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="bg-gray-800 border border-gray-700 rounded-lg shadow-md">
