@@ -18,7 +18,8 @@ interface Documentation {
 }
 
 export const useApiStore = defineStore('api', () => {
-  const jsonData = ref<any>(null)
+  const jsonData = ref<any>(null) // Exemple actuellement chargé
+  const importedJsonData = ref<any>(null) // Données JSON complètes importées
   const apiPrefix = ref<string>('/api/v1')
   const generatedRoutes = ref<Route[]>([])
   const documentation = ref<Documentation | null>(null)
@@ -27,6 +28,10 @@ export const useApiStore = defineStore('api', () => {
 
   const setJsonData = (data: any) => {
     jsonData.value = data
+  }
+
+  const setImportedJsonData = (data: any) => {
+    importedJsonData.value = data
   }
 
   const setApiPrefix = (prefix: string) => {
@@ -71,10 +76,12 @@ export const useApiStore = defineStore('api', () => {
 
   return {
     jsonData,
+    importedJsonData,
     apiPrefix,
     generatedRoutes,
     documentation,
     setJsonData,
+    setImportedJsonData,
     setApiPrefix,
     setGeneratedRoutes,
     saveDocumentation,

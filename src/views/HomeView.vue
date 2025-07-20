@@ -43,6 +43,7 @@ const generateApi = () => {
     const routes = generateApiRoutes(jsonData, apiPrefix.value)
 
     apiStore.setJsonData(jsonData)
+    apiStore.setImportedJsonData(jsonData) // Préserver les données complètes importées
     apiStore.setApiPrefix(apiPrefix.value)
     apiStore.setGeneratedRoutes(routes)
 

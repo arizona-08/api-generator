@@ -84,10 +84,7 @@ export function generateApiRoutes(jsonData, prefix) {
               }]
             });
           }
-
-          if (obj.length > 0 && typeof obj[0] === 'object') {
-            traverseObject(obj[0], [...path, '{id}'], currentPath);
-          }
+          // Ne pas traverser plus profondément pour les tableaux pour éviter la duplication
         } else {
           for (const key in obj) {
             if (Object.prototype.hasOwnProperty.call(obj, key)) {
