@@ -12,16 +12,17 @@ const routes = computed(() => apiStore.documentation?.routes || [])
 
 // Générer automatiquement des exemples basés sur les données JSON importées
 const generateDynamicExamples = () => {
-  const currentData = apiStore.jsonData
-  if (!currentData || typeof currentData !== 'object') {
+  // Utiliser importedJsonData pour préserver tous les exemples même après chargement
+  const importedData = apiStore.importedJsonData
+  if (!importedData || typeof importedData !== 'object') {
     return {}
   }
   
   // Créer des exemples basés sur les clés réelles du JSON importé
   const examples: Record<string, any> = {}
   
-  Object.keys(currentData).forEach(key => {
-    const data = currentData[key]
+  Object.keys(importedData).forEach(key => {
+    const data = importedData[key]
     if (Array.isArray(data) && data.length > 0) {
       // Prendre les 3 premiers éléments comme exemples
       examples[key] = data.slice(0, 3)
@@ -56,7 +57,10 @@ const getExampleButtonColor = (index: number) => {
 }
 
 const getExampleIcon = (key: string) => {
-  const iconMap: Record<string, string> = {
+  const keyLower = key.toLowerCase()
+  
+  // Map exact pour les correspondances directes
+  const exactMap: Record<string, string> = {
     users: '👥',
     products: '🛍️',
     posts: '📝',
@@ -78,7 +82,50 @@ const getExampleIcon = (key: string) => {
     reviews: '⭐',
     ratings: '📊'
   }
-  return iconMap[key.toLowerCase()] || '📋'
+  
+  // Vérification exacte d'abord
+  if (exactMap[keyLower]) {
+    return exactMap[keyLower]
+  }
+  
+  // Détection par regex pour plus de flexibilité
+  const regexPatterns = [
+    { pattern: /user|person|people|member|account|profile/i, emoji: '👥' },
+    { pattern: /product|item|good|merchandise|catalog/i, emoji: '🛍️' },
+    { pattern: /post|blog|article|news|content/i, emoji: '📝' },
+    { pattern: /order|purchase|transaction|sale|invoice/i, emoji: '📦' },
+    { pattern: /customer|client|buyer/i, emoji: '👤' },
+    { pattern: /book|library|literature/i, emoji: '📚' },
+    { pattern: /movie|film|cinema|video/i, emoji: '🎬' },
+    { pattern: /music|song|audio|sound/i, emoji: '🎵' },
+    { pattern: /photo|image|picture|gallery/i, emoji: '📸' },
+    { pattern: /event|meeting|appointment|schedule/i, emoji: '📅' },
+    { pattern: /task|todo|job|work/i, emoji: '✅' },
+    { pattern: /project|initiative|plan/i, emoji: '🚀' },
+    { pattern: /company|business|organization|firm/i, emoji: '🏢' },
+    { pattern: /category|group|section|type/i, emoji: '📂' },
+    { pattern: /tag|label|keyword/i, emoji: '🏷️' },
+    { pattern: /comment|feedback|note/i, emoji: '💬' },
+    { pattern: /review|rating|score|evaluation/i, emoji: '⭐' },
+    { pattern: /data|info|information|record/i, emoji: '📊' },
+    { pattern: /message|mail|email|notification/i, emoji: '📧' },
+    { pattern: /game|gaming|play/i, emoji: '🎮' },
+    { pattern: /food|restaurant|recipe|meal/i, emoji: '🍽️' },
+    { pattern: /location|place|address|map/i, emoji: '📍' },
+    { pattern: /document|file|report/i, emoji: '📄' },
+    { pattern: /payment|money|finance|wallet/i, emoji: '💰' },
+    { pattern: /setting|config|preference/i, emoji: '⚙️' }
+  ]
+  
+  // Recherche par pattern regex
+  for (const { pattern, emoji } of regexPatterns) {
+    if (pattern.test(keyLower)) {
+      return emoji
+    }
+  }
+  
+  // Emoji par défaut
+  return '📋'
 }
 
 // Fonction pour charger un exemple
@@ -109,6 +156,32 @@ const loadExample = (jsonData: Record<string, any>, prefix: string = '/api/v1') 
     console.error('❌ Erreur lors du chargement de l\'exemple:', error)
     alert('Erreur lors du chargement de l\'exemple')
   }
+}
+
+// Fonction pour réinitialiser l'API tester (préserve les données JSON importées)
+const resetApiTester = () => {
+  try {
+    // Réinitialiser seulement les routes générées et la documentation
+    // MAIS préserver les données JSON importées pour pouvoir choisir un autre exemple
+    apiStore.setGeneratedRoutes([])
+    apiStore.clearDocumentation()
+    
+    console.log('🔄 API Tester réinitialisé avec succès - Vous pouvez maintenant choisir un autre exemple')
+  } catch (error) {
+    console.error('❌ Erreur lors de la réinitialisation:', error)
+    alert('Erreur lors de la réinitialisation')
+  }
+}
+
+// Fonction pour vérifier si un exemple est actuellement chargé
+const isCurrentExample = (key: string): boolean => {
+  if (!apiStore.jsonData || Object.keys(apiStore.jsonData).length === 0) {
+    return false
+  }
+  
+  // Vérifier si la clé existe dans les données actuellement chargées
+  // et si des routes sont générées pour cette clé
+  return key in apiStore.jsonData && apiStore.generatedRoutes.length > 0
 }
 
 // Fonction utilitaire pour extraire la structure JSON (simplifiée)
@@ -181,20 +254,35 @@ const showExamples = ref(false)
             <h2 class="text-lg font-semibold text-gray-200">📋 Exemples de requêtes fonctionnelles</h2>
             <p class="text-sm text-gray-400 mt-1">Chargez des données d'exemple pour tester rapidement l'API</p>
           </div>
-          <button
-            @click="showExamples = !showExamples"
-            class="flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded transition-colors"
-          >
-            <svg 
-              class="w-4 h-4 transition-transform duration-200" 
-              :class="{ 'rotate-180': showExamples }"
-              fill="currentColor" 
-              viewBox="0 0 20 20"
+          <div class="flex items-center gap-2">
+            <!-- Bouton de réinitialisation -->
+            <button
+              v-if="apiStore.generatedRoutes.length > 0"
+              @click="resetApiTester"
+              class="flex items-center gap-1 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded transition-colors"
+              title="Réinitialiser pour changer d'exemple"
             >
-              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-            </svg>
-            {{ showExamples ? 'Masquer' : 'Afficher' }}
-          </button>
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+              </svg>
+              Réinitialiser
+            </button>
+            <!-- Bouton d'affichage/masquage -->
+            <button
+              @click="showExamples = !showExamples"
+              class="flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded transition-colors"
+            >
+              <svg 
+                class="w-4 h-4 transition-transform duration-200" 
+                :class="{ 'rotate-180': showExamples }"
+                fill="currentColor" 
+                viewBox="0 0 20 20"
+              >
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+              {{ showExamples ? 'Masquer' : 'Afficher' }}
+            </button>
+          </div>
         </div>
         
         <div 
@@ -231,7 +319,7 @@ const showExamples = ref(false)
                   class="w-full text-white text-sm font-medium py-2 px-3 rounded transition-colors"
                   :class="getExampleButtonColor(index)"
                 >
-                  Charger cet exemple
+                  {{ isCurrentExample(key) ? '✓ Exemple actuel' : 'Charger cet exemple' }}
                 </button>
               </div>
             </div>
@@ -258,17 +346,7 @@ const showExamples = ref(false)
               </router-link>
             </div>
             
-            <!-- Exemple complet -->
-            <div class="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 p-4 rounded-lg border border-indigo-600/30">
-              <h3 class="font-semibold text-indigo-300 mb-2">🚀 API Complète (Recommandé)</h3>
-              <p class="text-sm text-gray-400 mb-3">Tous les endpoints : utilisateurs, produits et posts</p>
-              <button
-                @click="loadExample(exampleData)"
-                class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-2 px-4 rounded transition-all transform hover:scale-105"
-              >
-                ✨ Charger l'exemple complet
-              </button>
-            </div>
+
           </div>
         </div>
       </div>
