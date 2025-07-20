@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { useFetch } from './useFetch'
 
 interface WeatherData {
   location: string
@@ -12,6 +13,25 @@ interface WeatherData {
 interface WeatherError {
   message: string
   code?: number
+}
+
+// Interface pour la réponse de l'API OpenWeather
+interface OpenWeatherResponse {
+  name: string
+  sys: {
+    country: string
+  }
+  main: {
+    temp: number
+    humidity: number
+  }
+  weather: Array<{
+    description: string
+    icon: string
+  }>
+  wind: {
+    speed: number
+  }
 }
 
 export function useWeather() {
@@ -43,17 +63,21 @@ export function useWeather() {
     weatherData.value = null
 
     try {
-      // Utiliser l'API Weather 2.5 (gratuite) au lieu de One Call 3.0
-      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=fr`
+      // Utiliser l'API Weather 2.5 via le proxy Vite pour éviter les problèmes CORS
+      const weatherUrl = `/api/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=fr`
       
-      const weatherResponse = await fetch(weatherUrl)
-      if (!weatherResponse.ok) {
-        throw new Error(`Weather API error: ${weatherResponse.status}`)
+      // Utilisation du composable useFetch personnalisé conformément au cours Vue.js
+      const { data: weatherJson, error: fetchError } = await useFetch<OpenWeatherResponse>(weatherUrl)
+      
+      if (fetchError) {
+        throw fetchError
       }
       
-      const weatherJson = await weatherResponse.json()
+      if (!weatherJson) {
+        throw new Error('Aucune donnée reçue de l\'API météo')
+      }
       
-      // 3. Formater les données
+      // Formater les données
       weatherData.value = {
         location: `${weatherJson.name}, ${weatherJson.sys.country}`,
         temperature: Math.round(weatherJson.main.temp),
